@@ -15,7 +15,9 @@ ENTRY_POINT_GROUP = "zdp.analyzers"
 
 #: Built-ins, used when running from a source tree without an installed
 #: distribution (entry points are then unavailable).
-BUILTIN_ANALYZERS: dict[str, str] = {}
+BUILTIN_ANALYZERS: dict[str, str] = {
+    "c2_beaconing": "zdp.analyzers.c2_beaconing:C2BeaconingAnalyzer",
+}
 
 
 class RegistryError(LookupError):

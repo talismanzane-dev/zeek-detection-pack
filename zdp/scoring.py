@@ -1,4 +1,4 @@
-"""Shared scoring helpers: linear ramps and weighted scores.
+"""Shared scoring helpers: linear ramps, dispersion statistics.
 
 Every detector scores with the same weighted-component model
 (``confidence = Σ wᵢ·cᵢ``, ``cᵢ ∈ [0, 1]``, ``Σ wᵢ = 1``). The helpers here are
@@ -8,8 +8,13 @@ metric inputs (e.g. "CV = 0.10 → component = 1.0").
 
 from __future__ import annotations
 
+import itertools
 import math
-from collections.abc import Mapping
+import statistics
+from collections.abc import Mapping, Sequence
+
+#: Scale factor that makes the MAD a consistent estimator of σ for normal data.
+MAD_TO_SIGMA = 1.4826
 
 #: Confidence bands for severity (spec §1.2).
 SEVERITY_BANDS: tuple[tuple[float, str], ...] = ((0.85, "high"), (0.6, "medium"))
@@ -84,3 +89,43 @@ def reduce_severity(severity: str, steps: int = 1) -> str:
     """Lower a severity by ``steps`` bands, never below ``low``."""
     index = SEVERITIES.index(severity)
     return SEVERITIES[max(0, index - steps)]
+
+
+# --- dispersion statistics --------------------------------------------------
+
+
+def median(values: Sequence[float]) -> float:
+    if not values:
+        raise ValueError("median of empty sequence")
+    return float(statistics.median(values))
+
+
+def mad(values: Sequence[float]) -> float:
+    """Median absolute deviation (unscaled)."""
+    center = median(values)
+    return median([abs(v - center) for v in values])
+
+
+def coefficient_of_variation(values: Sequence[float]) -> float | None:
+    """Population σ/μ; ``None`` when undefined (fewer than 2 values or μ = 0)."""
+    if len(values) < 2:
+        return None
+    mean = math.fsum(values) / len(values)
+    if mean == 0:
+        return None
+    return statistics.pstdev(values, mu=mean) / mean
+
+
+def robust_cv(values: Sequence[float]) -> float | None:
+    """MAD-based CV: ``1.4826 · MAD / median``; ``None`` when undefined."""
+    if len(values) < 2:
+        return None
+    center = median(values)
+    if center == 0:
+        return None
+    return MAD_TO_SIGMA * mad(values) / center
+
+
+def deltas(timestamps: Sequence[float]) -> list[float]:
+    """Successive differences of an ascending sequence."""
+    return [b - a for a, b in itertools.pairwise(timestamps)]

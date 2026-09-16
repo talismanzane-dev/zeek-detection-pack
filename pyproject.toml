@@ -47,6 +47,14 @@ export-validate = [
 Homepage = "https://github.com/talismanzane-dev/zeek-detection-pack"
 Issues = "https://github.com/talismanzane-dev/zeek-detection-pack/issues"
 
+[project.scripts]
+zdp = "zdp.cli:main"
+
+# Analyzers are discovered through this entry-point group. Third-party packages
+# can register additional analyzers by declaring entries in the same group.
+[project.entry-points."zdp.analyzers"]
+c2_beaconing = "zdp.analyzers.c2_beaconing:C2BeaconingAnalyzer"
+
 [tool.hatch.version]
 path = "zdp/__init__.py"
 
