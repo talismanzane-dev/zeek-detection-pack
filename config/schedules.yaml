@@ -1,0 +1,9 @@
+# Business-hours definition used by lateral-movement scoring (the +0.15
+# off-hours component). This is the only timezone-aware logic in the
+# framework; all timestamps elsewhere are epoch UTC.
+business_hours:
+  timezone: UTC          # IANA name, e.g. Europe/London, America/New_York
+  days: [mon, tue, wed, thu, fri]
+  start: "08:00"
+  end: "18:00"
+  holidays: []           # ISO dates, e.g. ["2026-12-25"]

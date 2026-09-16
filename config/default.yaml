@@ -1,0 +1,27 @@
+# zeek-detection-pack default configuration.
+#
+# Detector sections mirror each analyzer's DEFAULTS exactly (enforced by
+# tests/unit/test_config.py), so this file is the authoritative, documented
+# set of thresholds. Override per site with an overlay file rather than
+# editing defaults; see docs/tuning.md for the calibration procedure.
+#
+# Every detector scores confidence = Σ wᵢ·cᵢ (weights sum to 1) and emits only
+# when confidence >= min_confidence AND all hard gates pass.
+version: 1
+
+runner:
+  # Inputs larger than this (bytes on disk) are processed in time-bounded
+  # chunks of chunk_seconds; results are identical to a single full read.
+  chunk_threshold_bytes: 536870912
+  chunk_seconds: 86400
+
+reader:
+  # Reverse-lookup zones (in-addr.arpa, ip6.arpa) are dropped at read time:
+  # 63+ label IPv6 PTR names otherwise look like tunnels (spec §7.2).
+  drop_arpa: true
+
+policy:
+  networks_file: allowlists/networks.yaml
+  schedules_file: schedules.yaml
+
+detectors: {}

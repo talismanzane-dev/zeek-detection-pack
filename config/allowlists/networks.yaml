@@ -1,0 +1,44 @@
+# Network policy shared by all detectors.
+#
+# Tuning is mandatory. The defaults below are a conservative starting point,
+# not a description of your network. See docs/tuning.md.
+
+# Internal address space. Default: RFC 1918 + IPv6 unique-local (fc00::/7).
+internal:
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16
+  - fc00::/7
+
+# Destination allowlists consulted by c2_beaconing (categories selected by
+# detectors.c2_beaconing.allowlist_categories). NTP is additionally
+# suppressed via Zeek's `service` field.
+allowlists:
+  ntp:
+    # Public NTP services with documented stable anycast addresses.
+    # Verify against the provider before relying on these.
+    - 216.239.35.0/32    # time1.google.com
+    - 216.239.35.4/32    # time2.google.com
+    - 216.239.35.8/32    # time3.google.com
+    - 216.239.35.12/32   # time4.google.com
+    - 162.159.200.1/32   # time.cloudflare.com
+    - 162.159.200.123/32 # time.cloudflare.com
+  # OS/AV update mirrors, sanctioned SaaS and external monitoring endpoints
+  # are environment-specific; populate from your proxy/firewall inventory.
+  updates: []
+  saas: []
+  monitoring: []
+
+# Hosts used by IT administrators; suppresses the +0.2 "non-admin source"
+# component of the lateral new-pair score.
+admin_hosts: []
+
+# Vulnerability scanners / inventory tools; excluded from every lateral
+# movement signal.
+scanner_hosts: []
+
+# Sources allowed to write to admin shares (software deployment, backup, AV).
+# Each entry REQUIRES a justification; the loader rejects entries without one.
+#   - cidr: 10.0.9.10/32
+#     justification: "SCCM primary site server - pushes client installs to ADMIN$"
+lateral_allow_sources: []
