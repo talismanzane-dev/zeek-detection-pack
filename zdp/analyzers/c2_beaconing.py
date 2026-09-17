@@ -65,7 +65,7 @@ class C2BeaconingAnalyzer(BaseAnalyzer):
         "allowlist_categories": ["ntp", "updates", "saas", "monitoring"],
         "keepalive": {"oth_fraction": 0.5, "max_gap_seconds": 1.0},
         "weights": {"interval": 0.45, "bytes": 0.30, "count": 0.15, "resp_volume": 0.10},
-        "interval_cv": {"one_at": 0.15, "zero_at": 0.5},
+        "interval_cv": {"one_at": 0.12, "zero_at": 0.5},
         "bytes_cv": {"one_at": 0.1, "zero_at": 0.6},
         "count_saturation": 48,
         "resp_small_bytes": 2048,
