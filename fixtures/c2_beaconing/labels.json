@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "scenario": "c2_beaconing",
+  "description": "Beaconing true positives (spec scenario `beacon_60s`) over 6 h of benign web traffic, including an IPv6 variant and two regular-but-benign decoys.",
+  "labels": [
+    {
+      "detector": "c2_beaconing",
+      "src": "10.1.2.15",
+      "dst": "203.0.113.40",
+      "indicator": "203.0.113.40:443",
+      "window": [
+        1700010017.0,
+        1700020783.832605
+      ],
+      "technique_id": "T1071.001",
+      "note": "injected 60 s \u00b15 % jitter HTTPS beacon, ~900 B requests, seed=42"
+    },
+    {
+      "detector": "c2_beaconing",
+      "src": "fd00:10:1:2::25",
+      "dst": "2001:db8:40::10",
+      "indicator": "[2001:db8:40::10]:8443",
+      "window": [
+        1700013605.0,
+        1700020697.638419
+      ],
+      "technique_id": "T1071.001",
+      "note": "IPv6 variant: 120 s \u00b15 % beacon to a documentation-prefix C2"
+    }
+  ],
+  "benign": [
+    {
+      "description": "NTP polling every 64 s with constant 48 B packets (service=ntp suppression)",
+      "detector": "c2_beaconing",
+      "src": "10.1.2.20",
+      "dst": "192.0.2.123"
+    },
+    {
+      "description": "Exact 300 s update check to an allowlisted vendor CIDR (site.yaml)",
+      "detector": "c2_beaconing",
+      "src": "10.1.2.30",
+      "dst": "192.0.2.80"
+    }
+  ]
+}

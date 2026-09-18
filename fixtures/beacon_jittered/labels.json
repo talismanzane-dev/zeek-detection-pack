@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "scenario": "beacon_jittered",
+  "description": "A 300 s beacon with \u00b125 % uniform jitter and one missed check-in: exercises the MAD-based robust CV near the regularity threshold.",
+  "labels": [
+    {
+      "detector": "c2_beaconing",
+      "src": "10.1.2.44",
+      "dst": "203.0.113.77",
+      "indicator": "203.0.113.77:80",
+      "window": [
+        1700028600.0,
+        1700044276.301769
+      ],
+      "technique_id": "T1071.001",
+      "note": "300 s beacon, uniform \u00b125 % jitter, check-in #23 missed (host asleep)"
+    }
+  ],
+  "benign": []
+}
