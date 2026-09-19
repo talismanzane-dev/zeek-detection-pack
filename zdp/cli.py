@@ -1,4 +1,4 @@
-"""Command-line entry point: ``zdp run | list | view | selftest``."""
+"""Command-line entry point: ``zdp run | harness | list | view | selftest``."""
 
 from __future__ import annotations
 
@@ -108,6 +108,12 @@ def cmd_run(args: argparse.Namespace) -> int:
             persistent.close()
 
 
+def cmd_harness(args: argparse.Namespace) -> int:
+    from zdp.harness.runner import main as harness_main
+
+    return harness_main(args.harness_args)
+
+
 def cmd_list(args: argparse.Namespace) -> int:
     for name, cls in available_analyzers().items():
         logs = ",".join(sorted(cls.required_logs))
@@ -195,6 +201,12 @@ def build_parser() -> argparse.ArgumentParser:
     _add_config_args(run)
     run.set_defaults(func=cmd_run)
 
+    harness = sub.add_parser(
+        "harness", help="run the labeled-fixture harness (see: zdp harness --help)", add_help=False
+    )
+    harness.add_argument("harness_args", nargs=argparse.REMAINDER)
+    harness.set_defaults(func=cmd_harness)
+
     lst = sub.add_parser("list", help="list registered analyzers")
     lst.set_defaults(func=cmd_list)
 
@@ -211,6 +223,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     raw = list(sys.argv[1:] if argv is None else argv)
+    if raw[:1] == ["harness"]:
+        # Hand everything after "harness" to the harness's own parser
+        # (argparse REMAINDER cannot capture leading --options).
+        from zdp.harness.runner import main as harness_main
+
+        return harness_main(raw[1:])
     args = build_parser().parse_args(raw)
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
