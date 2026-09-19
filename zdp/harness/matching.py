@@ -73,7 +73,7 @@ class Counts:
             recall = 0.0
             undefined.append("recall")
         if precision + recall:
-            f1 = precision * recall / (precision + recall)
+            f1 = 2 * precision * recall / (precision + recall)
         else:
             f1 = 0.0
             undefined.append("f1")
