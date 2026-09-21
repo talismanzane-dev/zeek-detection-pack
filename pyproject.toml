@@ -54,6 +54,7 @@ zdp = "zdp.cli:main"
 # can register additional analyzers by declaring entries in the same group.
 [project.entry-points."zdp.analyzers"]
 c2_beaconing = "zdp.analyzers.c2_beaconing:C2BeaconingAnalyzer"
+dns_tunneling = "zdp.analyzers.dns_tunneling:DNSTunnelingAnalyzer"
 
 [tool.hatch.version]
 path = "zdp/__init__.py"

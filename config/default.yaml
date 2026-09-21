@@ -47,3 +47,25 @@ detectors:
     resp_large_score: 0.3
     export:
       suricata_ports: [80, 443, 8080, 8443]
+
+  dns_tunneling:
+    enabled: true
+    window_seconds: 3600
+    window_overlap: 0.0
+    min_confidence: 0.6
+    min_queries: 30                  # hard gate, per (src, registered domain) per window
+    min_mean_subdomain_length: 20    # hard gate (cheap pre-filter)
+    weights: {query_length: 0.55, txt_null_ratio: 0.15, unique_subdomain_ratio: 0.15, volume: 0.15}
+    query_length: {zero_at: 40, one_at: 80}          # full query length
+    txt_null_ratio: {zero_at: 0.05, one_at: 0.4}
+    unique_subdomain_ratio: {zero_at: 0.5, one_at: 0.95}
+    volume: {zero_at: 30, one_at: 300}
+    txt_null_types: [TXT, "NULL"]   # quoted: bare NULL is YAML null
+    half_weight_types: [CNAME]
+    half_weight: 0.5
+    exfil_component_threshold: 0.9   # secondary T1048.003 when uniqueness AND volume components reach this
+    exclude_qtypes: [SRV]
+    exclude_underscore_labels: true  # _ldap._tcp… service discovery
+    qps_bucket_seconds: 60
+    sample_queries: 3
+    sample_max_length: 120

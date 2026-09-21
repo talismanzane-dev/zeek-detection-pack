@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "scenario": "dns_tunneling",
+  "description": "iodine-style TXT tunnel with base32 payload labels (spec scenario `dns_tunnel_txt`) over 3 h of benign resolver traffic.",
+  "labels": [
+    {
+      "detector": "dns_tunneling",
+      "src": "10.1.3.22",
+      "indicator": "example.net",
+      "window": [
+        1700051403.0,
+        1700056196.724319
+      ],
+      "technique_id": "T1071.004",
+      "note": "iodine-style TXT tunnel, base32 subdomains under t.example.net, seed=1337"
+    }
+  ],
+  "benign": [
+    {
+      "description": "Active Directory SRV discovery (_ldap._tcp\u2026) \u2014 long names, excluded by SRV/underscore rules",
+      "detector": "dns_tunneling"
+    }
+  ]
+}

@@ -11,7 +11,7 @@ from __future__ import annotations
 import itertools
 import math
 import statistics
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 
 #: Scale factor that makes the MAD a consistent estimator of σ for normal data.
 MAD_TO_SIGMA = 1.4826
@@ -129,3 +129,10 @@ def robust_cv(values: Sequence[float]) -> float | None:
 def deltas(timestamps: Sequence[float]) -> list[float]:
     """Successive differences of an ascending sequence."""
     return [b - a for a, b in itertools.pairwise(timestamps)]
+
+
+def mean(values: Iterable[float]) -> float:
+    items = list(values)
+    if not items:
+        raise ValueError("mean of empty sequence")
+    return math.fsum(items) / len(items)
