@@ -2,8 +2,8 @@
 
 Tunnels (iodine, dnscat2, DNS-based C2 channels and exfiltration tools)
 encode payload in query names and receive data in TXT/NULL/CNAME answers.
-Per ``(id.orig_h, registered_domain(query))`` we measure query length,
-TXT/NULL share, subdomain uniqueness and volume.
+Per ``(id.orig_h, registered_domain(query))`` we measure subdomain entropy,
+query length, TXT/NULL share, subdomain uniqueness and volume.
 
 ATT&CK: T1071.004 (Application Layer Protocol: DNS), tactic Command and
 Control. When both the uniqueness and volume components saturate the
@@ -22,7 +22,7 @@ from zdp.analyzers.base import BaseAnalyzer
 from zdp.models import AnalyzerConfig, Detection, LogWindow, Record
 from zdp.psl import DomainParser, get_parser
 from zdp.rules import TIER_APPROX, SigmaRule, SuricataRule, rule_uuid, suricata_sid
-from zdp.scoring import mean, ramp, validate_weights, weighted_score
+from zdp.scoring import mean, ramp, shannon_entropy, validate_weights, weighted_score
 
 if TYPE_CHECKING:
     from zdp.config import Config
@@ -45,11 +45,13 @@ class DNSTunnelingAnalyzer(BaseAnalyzer):
         "min_queries": 30,
         "min_mean_subdomain_length": 20,
         "weights": {
-            "query_length": 0.55,
+            "entropy": 0.30,
+            "query_length": 0.25,
             "txt_null_ratio": 0.15,
             "unique_subdomain_ratio": 0.15,
             "volume": 0.15,
         },
+        "entropy": {"zero_at": 3.0, "one_at": 4.0},
         "query_length": {"zero_at": 40, "one_at": 80},
         "txt_null_ratio": {"zero_at": 0.05, "one_at": 0.4},
         "unique_subdomain_ratio": {"zero_at": 0.5, "one_at": 0.95},
@@ -132,12 +134,14 @@ class DNSTunnelingAnalyzer(BaseAnalyzer):
         bucket = cfg.float_param("qps_bucket_seconds")
         buckets = Counter(int(float(rec["ts"]) // bucket) for rec, _ in items)
         metrics = {
+            "mean_entropy": mean(shannon_entropy(s.replace(".", "")) for s in subdomains),
             "mean_qlen": mean(len(q) for _, q in items),
             "txt_null_ratio": weighted_txt / n,
             "unique_sub_ratio": len(set(subdomains)) / n,
             "qps_peak": max(buckets.values()),
         }
         components = {
+            "entropy": _ramp(cfg, "entropy", metrics["mean_entropy"]),
             "query_length": _ramp(cfg, "query_length", metrics["mean_qlen"]),
             "txt_null_ratio": _ramp(cfg, "txt_null_ratio", metrics["txt_null_ratio"]),
             "unique_subdomain_ratio": _ramp(

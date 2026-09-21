@@ -55,7 +55,8 @@ detectors:
     min_confidence: 0.6
     min_queries: 30                  # hard gate, per (src, registered domain) per window
     min_mean_subdomain_length: 20    # hard gate (cheap pre-filter)
-    weights: {query_length: 0.55, txt_null_ratio: 0.15, unique_subdomain_ratio: 0.15, volume: 0.15}
+    weights: {entropy: 0.30, query_length: 0.25, txt_null_ratio: 0.15, unique_subdomain_ratio: 0.15, volume: 0.15}
+    entropy: {zero_at: 3.0, one_at: 4.0}             # bits/char of subdomain labels
     query_length: {zero_at: 40, one_at: 80}          # full query length
     txt_null_ratio: {zero_at: 0.05, one_at: 0.4}
     unique_subdomain_ratio: {zero_at: 0.5, one_at: 0.95}

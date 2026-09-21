@@ -1,4 +1,4 @@
-"""Shared scoring helpers: linear ramps, dispersion statistics.
+"""Shared scoring helpers: linear ramps, dispersion statistics, entropy.
 
 Every detector scores with the same weighted-component model
 (``confidence = Σ wᵢ·cᵢ``, ``cᵢ ∈ [0, 1]``, ``Σ wᵢ = 1``). The helpers here are
@@ -11,6 +11,7 @@ from __future__ import annotations
 import itertools
 import math
 import statistics
+from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 
 #: Scale factor that makes the MAD a consistent estimator of σ for normal data.
@@ -21,6 +22,7 @@ SEVERITY_BANDS: tuple[tuple[float, str], ...] = ((0.85, "high"), (0.6, "medium")
 SEVERITIES: tuple[str, ...] = ("low", "medium", "high")
 
 _WEIGHT_TOLERANCE = 1e-6
+_VOWELS = frozenset("aeiouy")
 
 
 def clamp01(value: float) -> float:
@@ -129,6 +131,36 @@ def robust_cv(values: Sequence[float]) -> float | None:
 def deltas(timestamps: Sequence[float]) -> list[float]:
     """Successive differences of an ascending sequence."""
     return [b - a for a, b in itertools.pairwise(timestamps)]
+
+
+# --- lexical features -------------------------------------------------------
+
+
+def shannon_entropy(text: str) -> float:
+    """Shannon entropy in bits per character (0.0 for the empty string)."""
+    if not text:
+        return 0.0
+    counts = Counter(text)
+    length = len(text)
+    return -math.fsum((n / length) * math.log2(n / length) for n in counts.values())
+
+
+def digit_ratio(text: str) -> float:
+    if not text:
+        return 0.0
+    return sum(ch.isdigit() for ch in text) / len(text)
+
+
+def longest_consonant_run(text: str) -> int:
+    """Longest run of ASCII consonants (``y`` is treated as a vowel)."""
+    best = current = 0
+    for ch in text.lower():
+        if "a" <= ch <= "z" and ch not in _VOWELS:
+            current += 1
+            best = max(best, current)
+        else:
+            current = 0
+    return best
 
 
 def mean(values: Iterable[float]) -> float:
