@@ -22,6 +22,7 @@ reader:
 
 policy:
   networks_file: allowlists/networks.yaml
+  domains_file: allowlists/domains.txt
   schedules_file: schedules.yaml
 
 detectors:
