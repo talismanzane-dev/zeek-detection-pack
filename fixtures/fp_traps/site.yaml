@@ -1,0 +1,11 @@
+site:
+  networks:
+    scanner_hosts:
+      - "10.1.9.50/32"
+    lateral_allow_sources:
+      - cidr: "10.1.9.10/32"
+        justification: "SCCM primary site server: client push installs via ADMIN$"
+      - cidr: "10.1.9.20/32"
+        justification: "Backup server: agentless file-level backups over C$"
+  internal_zones:
+    - "corp.example.org"

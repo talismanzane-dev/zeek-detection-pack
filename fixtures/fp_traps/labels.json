@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "scenario": "fp_traps",
+  "description": "Known false-positive regression set (spec \u00a77): every behaviour here resembles an attack signal and must produce zero detections at default thresholds.",
+  "labels": [],
+  "benign": [
+    {
+      "description": "CDN cache-busting: 400 unique 16-hex-char hostnames under one domain (high entropy/uniqueness but short, A-only)",
+      "detector": "dns_tunneling",
+      "src": "10.1.2.50"
+    },
+    {
+      "description": "Mail gateway DNSBL lookups (reversed IPs under zen.spamhaus.org, mostly NXDOMAIN) \u2014 allowlisted registered domain",
+      "src": "10.1.0.25"
+    },
+    {
+      "description": "Kerberos SRV discovery (_kerberos._tcp\u2026)",
+      "detector": "dns_tunneling"
+    },
+    {
+      "description": "ip6.arpa PTR lookups (63+ labels) \u2014 .arpa dropped by the reader",
+      "src": "10.1.2.51"
+    },
+    {
+      "description": "Misconfigured app hammering one dead name (one registered domain \u2192 c_burst 0)",
+      "detector": "dga",
+      "src": "10.1.2.60"
+    },
+    {
+      "description": "NTP polling every 64 s",
+      "detector": "c2_beaconing",
+      "src": "10.1.2.20"
+    },
+    {
+      "description": "SCCM client policy polling every 300 s to an internal server",
+      "detector": "c2_beaconing",
+      "dst": "10.1.9.10"
+    },
+    {
+      "description": "Long-lived XMPP/MQTT-style keep-alive split by Zeek into back-to-back OTH records",
+      "detector": "c2_beaconing",
+      "src": "10.1.2.70"
+    },
+    {
+      "description": "Credentialed vulnerability scan of 120 hosts on admin ports with IPC$ access (site scanner_hosts)",
+      "detector": "lateral_movement",
+      "src": "10.1.9.50"
+    },
+    {
+      "description": "SCCM client push: ccmsetup.exe written to ADMIN$ on 30 hosts in ~5 min (site lateral_allow_sources, with justification)",
+      "detector": "lateral_movement",
+      "src": "10.1.9.10"
+    },
+    {
+      "description": "Backup agent writing to C$ on the file server (lateral_allow_sources)",
+      "detector": "lateral_movement",
+      "src": "10.1.9.20"
+    }
+  ]
+}

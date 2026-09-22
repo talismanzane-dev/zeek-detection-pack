@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "analyzers": {
+    "lateral_movement": {
+      "meta": {
+        "baseline_started": "1699056000.0"
+      },
+      "seen": []
+    }
+  }
+}
