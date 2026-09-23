@@ -18,6 +18,7 @@ ENTRY_POINT_GROUP = "zdp.analyzers"
 BUILTIN_ANALYZERS: dict[str, str] = {
     "c2_beaconing": "zdp.analyzers.c2_beaconing:C2BeaconingAnalyzer",
     "dns_tunneling": "zdp.analyzers.dns_tunneling:DNSTunnelingAnalyzer",
+    "dga": "zdp.analyzers.dga:DGAAnalyzer",
 }
 
 

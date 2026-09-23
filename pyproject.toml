@@ -55,6 +55,7 @@ zdp = "zdp.cli:main"
 [project.entry-points."zdp.analyzers"]
 c2_beaconing = "zdp.analyzers.c2_beaconing:C2BeaconingAnalyzer"
 dns_tunneling = "zdp.analyzers.dns_tunneling:DNSTunnelingAnalyzer"
+dga = "zdp.analyzers.dga:DGAAnalyzer"
 
 [tool.hatch.version]
 path = "zdp/__init__.py"

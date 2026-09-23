@@ -24,6 +24,8 @@ policy:
   networks_file: allowlists/networks.yaml
   domains_file: allowlists/domains.txt
   schedules_file: schedules.yaml
+  # Internal DNS zones excluded from DGA burst counting (search-suffix storms).
+  internal_zones: []
 
 detectors:
   c2_beaconing:
@@ -71,3 +73,22 @@ detectors:
     qps_bucket_seconds: 60
     sample_queries: 3
     sample_max_length: 120
+
+  dga:
+    enabled: true
+    window_seconds: 3600
+    window_overlap: 0.0
+    min_confidence: 0.6
+    burst_window_seconds: 300
+    nx_burst_min: 10                 # unique NXDOMAIN registered domains in burst_window_seconds
+    burst_saturation_span: 40        # c_burst = min((n - nx_burst_min) / span, 1)
+    nxdomain_rcodes: [NXDOMAIN]
+    min_sld_length: 6
+    top_k: 20
+    min_lexical: 0.4                 # hard gate: a burst alone never fires
+    weights: {burst: 0.5, lexical: 0.5}
+    lexical_weights: {entropy: 0.7, digit_ratio: 0.15, consonant_run: 0.15}
+    entropy: {zero_at: 2.8, one_at: 3.8}
+    digit_ratio: {zero_at: 0.0, one_at: 0.3}
+    consonant_run: {zero_at: 2, one_at: 5}
+    max_evidence_domains: 20
