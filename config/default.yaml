@@ -87,8 +87,11 @@ detectors:
     top_k: 20
     min_lexical: 0.4                 # hard gate: a burst alone never fires
     weights: {burst: 0.5, lexical: 0.5}
-    lexical_weights: {entropy: 0.7, digit_ratio: 0.15, consonant_run: 0.15}
+    lexical_weights: {entropy: 0.35, bigram: 0.35, digit_ratio: 0.15, consonant_run: 0.15}
     entropy: {zero_at: 2.8, one_at: 3.8}
+    # "table": anchors come from the calibration stored with the bundled
+    # bigram table (zdp/data/bigram_freq.json) — never hard-coded here.
+    bigram: {zero_at: table, one_at: table}
     digit_ratio: {zero_at: 0.0, one_at: 0.3}
     consonant_run: {zero_at: 2, one_at: 5}
     max_evidence_domains: 20

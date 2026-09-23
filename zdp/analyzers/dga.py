@@ -7,8 +7,9 @@ lexically random second-level labels. Two signals must agree:
 * **A — NXDOMAIN burst**: unique *registered* domains answered NXDOMAIN for
   one host inside a sliding 300 s window (dedup by registered domain, so a
   host hammering one dead name scores zero).
-* **B — lexical anomaly**: entropy, digit ratio and consonant runs of the
-  burst's second-level labels, averaged over the top-K most anomalous.
+* **B — lexical anomaly**: entropy, character-bigram likelihood (Tranco-trained
+  table), digit ratio and consonant runs of the burst's second-level labels,
+  averaged over the top-K most anomalous.
 
 ``confidence = 0.5·c_burst + 0.5·c_lexical`` with a hard gate on
 ``c_lexical`` — a burst alone never fires.
@@ -25,6 +26,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from zdp.analyzers.base import BaseAnalyzer
+from zdp.lexical import BigramModel, get_model
 from zdp.models import AnalyzerConfig, Detection, LogWindow, Record
 from zdp.psl import DomainParser, get_parser
 from zdp.rules import (
@@ -72,11 +74,14 @@ class DGAAnalyzer(BaseAnalyzer):
         "min_lexical": 0.4,
         "weights": {"burst": 0.5, "lexical": 0.5},
         "lexical_weights": {
-            "entropy": 0.7,
+            "entropy": 0.35,
+            "bigram": 0.35,
             "digit_ratio": 0.15,
             "consonant_run": 0.15,
         },
         "entropy": {"zero_at": 2.8, "one_at": 3.8},
+        # "table" = use the calibration stored in zdp/data/bigram_freq.json.
+        "bigram": {"zero_at": "table", "one_at": "table"},
         "digit_ratio": {"zero_at": 0.0, "one_at": 0.3},
         "consonant_run": {"zero_at": 2, "one_at": 5},
         "max_evidence_domains": 20,
@@ -85,17 +90,34 @@ class DGAAnalyzer(BaseAnalyzer):
     def __init__(self) -> None:
         super().__init__()
         self._parser: DomainParser | None = None
+        self._model: BigramModel | None = None
 
     def validate_config(self, config: AnalyzerConfig) -> None:
         validate_weights(config.section("weights"))
         validate_weights(config.section("lexical_weights"))
         self._parser = get_parser(config.include_psl_private_domains)
+        self._model = get_model()
 
     @property
     def parser(self) -> DomainParser:
         if self._parser is None:
             self._parser = get_parser(self.config.include_psl_private_domains)
         return self._parser
+
+    @property
+    def model(self) -> BigramModel:
+        if self._model is None:
+            self._model = get_model()
+        return self._model
+
+    def bigram_anchors(self) -> tuple[float, float]:
+        section = self.config.section("bigram")
+        zero = section["zero_at"]
+        one = section["one_at"]
+        return (
+            self.model.zero_at if zero == "table" else float(zero),
+            self.model.one_at if one == "table" else float(one),
+        )
 
     # -- analysis ---------------------------------------------------------------
 
@@ -146,16 +168,20 @@ class DGAAnalyzer(BaseAnalyzer):
 
     def lexical_scores(self, sld: str) -> dict[str, float]:
         cfg = self.config
+        zero, one = self.bigram_anchors()
         entropy = shannon_entropy(sld)
+        logprob = self.model.mean_logprob(sld)
         digits = digit_ratio(sld)
         run = longest_consonant_run(sld)
         components = {
             "entropy": _ramp(cfg, "entropy", entropy),
+            "bigram": ramp(logprob, zero, one),
             "digit_ratio": _ramp(cfg, "digit_ratio", digits),
             "consonant_run": _ramp(cfg, "consonant_run", float(run)),
         }
         return {
             "entropy": entropy,
+            "bigram_logprob": logprob,
             "digit_ratio": digits,
             "consonant_run": float(run),
             **{f"c_{k}": v for k, v in components.items()},
@@ -195,6 +221,7 @@ class DGAAnalyzer(BaseAnalyzer):
         if confidence < cfg.min_confidence:
             return None
 
+        zero, one = self.bigram_anchors()
         evidence: dict[str, Any] = {
             "n_nxdomain_unique": n_unique,
             "n_nxdomain_events": len(burst),
@@ -207,6 +234,7 @@ class DGAAnalyzer(BaseAnalyzer):
             "n_candidates_scored": len(candidates),
             "n_excluded_short_sld": excluded_short,
             "n_excluded_idn": excluded_idn,
+            "bigram_anchors": {"zero_at": zero, "one_at": one},
             "components": components,
             "weights": dict(weights),
             "candidates": candidates[: cfg.int_param("max_evidence_domains")],
