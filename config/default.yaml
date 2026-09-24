@@ -24,6 +24,9 @@ policy:
   networks_file: allowlists/networks.yaml
   domains_file: allowlists/domains.txt
   schedules_file: schedules.yaml
+  # Treat PSL private-section suffixes (s3.amazonaws.com, cloudfront.net,
+  # duckdns.org …) as public suffixes when computing registered domains.
+  include_psl_private_domains: true
   # Internal DNS zones excluded from DGA burst counting (search-suffix storms).
   internal_zones: []
 
