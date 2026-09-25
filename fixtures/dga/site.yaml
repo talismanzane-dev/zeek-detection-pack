@@ -1,0 +1,3 @@
+site:
+  internal_zones:
+    - "corp.example.org"

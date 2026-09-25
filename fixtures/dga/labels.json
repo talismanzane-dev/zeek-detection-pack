@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "scenario": "dga",
+  "description": "NXDOMAIN burst of 40 lexically random domains from one host in ~4 minutes (spec scenario `dga_burst`) mixed into benign DNS, plus benign NXDOMAIN look-alikes.",
+  "labels": [
+    {
+      "detector": "dga",
+      "src": "10.1.4.31",
+      "window": [
+        1700065511.0,
+        1700065743.677707
+      ],
+      "technique_id": "T1568.002",
+      "note": "40 NXDOMAIN lookups of random 10\u201316 char SLDs, then one resolving name"
+    }
+  ],
+  "benign": [
+    {
+      "description": "Chromium DNS-interception probes: 3 random single-label NXDOMAINs per browser start (no public suffix \u2192 excluded)",
+      "detector": "dga"
+    },
+    {
+      "description": "Search-suffix expansion storm under corp.example.org (internal zone, and one registered domain)",
+      "detector": "dga",
+      "src": "10.1.2.40"
+    },
+    {
+      "description": "Occasional typo NXDOMAINs from different hosts",
+      "detector": "dga"
+    }
+  ]
+}
