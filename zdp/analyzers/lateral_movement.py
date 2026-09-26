@@ -91,6 +91,7 @@ class _Candidate:
 class LateralMovementAnalyzer(BaseAnalyzer):
     name: ClassVar[str] = NAME
     required_logs: ClassVar[frozenset[str]] = frozenset({"conn"})
+    optional_logs: ClassVar[frozenset[str]] = frozenset({"smb_files"})
     DEFAULTS: ClassVar[Mapping[str, Any]] = {
         "window_seconds": 3600,
         "window_overlap": 0.0,
@@ -175,7 +176,8 @@ class LateralMovementAnalyzer(BaseAnalyzer):
     def analyze(self, window: LogWindow) -> list[Detection]:
         conns = self._admin_conns(window)
         new_pairs = self._new_pairs(window, conns)
-        candidates = list(new_pairs)
+        share_hits = self._admin_share(window)
+        candidates = self._merge(new_pairs, share_hits)
         candidates.extend(self._fanout(conns))
         min_conf = self.config.min_confidence
         return [self._to_detection(c) for c in candidates if c.confidence >= min_conf]
