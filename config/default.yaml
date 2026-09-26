@@ -98,3 +98,32 @@ detectors:
     digit_ratio: {zero_at: 0.0, one_at: 0.3}
     consonant_run: {zero_at: 2, one_at: 5}
     max_evidence_domains: 20
+
+  lateral_movement:
+    enabled: true
+    window_seconds: 3600
+    window_overlap: 0.0
+    min_confidence: 0.6
+    admin_ports: [445, 135, 3389, 5985, 5986, 22]
+    established_states: [SF, S1, RSTO, OTH]   # at least partially established
+    baseline_min_age_days: 7                  # warm-up: no new-pair signal before this
+    baseline_expiry_days: 30
+    new_pair: {base: 0.5, non_admin_host_bonus: 0.2, off_hours_bonus: 0.15}
+    admin_share:
+      pattern: '(?i)\\\\[^\\]+\\(ADMIN\$|C\$|[A-Z]\$)'
+      exec_extensions: [.exe, .dll, .ps1, .bat, .vbs, .sct]
+      write_actions: ['SMB::FILE_WRITE']
+      open_actions: ['SMB::FILE_OPEN']
+      exec_write_score: 0.9
+      exec_open_score: 0.75
+      other_write_score: 0.6
+      max_files_in_evidence: 20
+    fanout:
+      window_seconds: 600
+      min_hosts: 10
+      base: 0.4
+      per_host: 0.02                 # c = min(0.4 + (n - 10)/50, 1)
+      scan_states: [S0, REJ]
+      scan_fraction: 0.8
+    correlation_seconds: 600
+    merge_secondary_weight: 0.5
