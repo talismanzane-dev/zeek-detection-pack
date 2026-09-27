@@ -1,0 +1,4 @@
+site:
+  networks:
+    admin_hosts:
+      - "10.1.8.5/32"

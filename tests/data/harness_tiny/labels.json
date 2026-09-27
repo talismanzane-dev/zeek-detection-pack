@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "scenario": "harness_tiny",
+  "description": "Minimal scenario with exactly one true positive, one false positive and one false negative for the dns_tunneling detector, used to unit-test metric computation.",
+  "labels": [
+    {
+      "detector": "dns_tunneling",
+      "src": "10.9.0.10",
+      "indicator": "example.net",
+      "window": [
+        1700439000.0,
+        1700439590.0
+      ],
+      "note": "labeled tunnel \u2192 TP"
+    },
+    {
+      "detector": "dns_tunneling",
+      "src": "10.9.0.12",
+      "indicator": "example.net",
+      "window": [
+        1700439000.0,
+        1700439600.0
+      ],
+      "note": "no matching traffic \u2192 FN"
+    }
+  ],
+  "benign": [
+    {
+      "description": "10.9.0.11 runs an identical but UNLABELED tunnel \u2192 counted as FP",
+      "src": "10.9.0.11"
+    }
+  ]
+}

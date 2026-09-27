@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "scenario": "lateral_movement",
+  "description": "PsExec-style lateral movement (spec scenario `lateral_psexec`): a new internal SMB pair plus an executable written to ADMIN$, later an admin-port scan, against a mature first-seen baseline.",
+  "labels": [
+    {
+      "detector": "lateral_movement",
+      "src": "10.1.2.15",
+      "dst": "10.1.5.20",
+      "window": [
+        1700100607.0,
+        1700100610.0
+      ],
+      "technique_id": "T1021.002",
+      "note": "new 445/135 pair off-hours + PSEXESVC.exe written to ADMIN$ (signals 1+2 merge)"
+    },
+    {
+      "detector": "lateral_movement",
+      "src": "10.1.2.15",
+      "window": [
+        1700112613.0,
+        1700112713.899919
+      ],
+      "technique_id": "T1046",
+      "note": "445 sweep of 30 hosts, all S0/REJ \u2192 fan-out pattern=scan"
+    }
+  ],
+  "benign": [
+    {
+      "description": "Admin workstation's first RDP session to a new server during business hours: new pair but admin host + business hours \u2192 0.5, below threshold",
+      "detector": "lateral_movement",
+      "src": "10.1.8.5",
+      "dst": "10.1.5.30"
+    },
+    {
+      "description": "Routine workstation SMB to the file server and DC traffic (in baseline)",
+      "detector": "lateral_movement"
+    }
+  ]
+}

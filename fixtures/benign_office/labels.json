@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "scenario": "benign_office",
+  "description": "24 h of synthetic office traffic (spec scenario `benign_office`): browsing, O365-style DNS, NTP, update checks, file-server SMB and DC traffic. Pure negative.",
+  "labels": [],
+  "benign": [
+    {
+      "description": "Five workstations poll an allowlisted update endpoint every 300 s",
+      "detector": "c2_beaconing",
+      "dst": "192.0.2.80"
+    }
+  ]
+}
