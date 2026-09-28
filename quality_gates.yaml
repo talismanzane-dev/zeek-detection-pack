@@ -1,0 +1,31 @@
+# CI quality gates, checked by tools/check_gates.py against a runtime
+# metrics.json produced by `python -m zdp.harness`.
+#
+# Two kinds of gate live here:
+#
+# 1. Per-detector metric FLOORS (pooled precision/recall). These are minimum
+#    acceptance bars to be set only AFTER a baseline run has been reviewed —
+#    they are not claims of performance. Until then every floor is null and
+#    the gate reports PENDING instead of passing or failing.
+#    PLACEHOLDER: set floors after the first reviewed baseline run
+#    (see docs/tuning.md, "Setting quality gates").
+#
+# 2. Fixture CORRECTNESS assertions. The bundled fixtures are synthetic with
+#    known ground truth; these assert that each injected event is matched and
+#    that negative scenarios stay silent. They test logic, not performance.
+schema_version: 1
+
+detectors:
+  c2_beaconing:     {min_precision: null, min_recall: null}
+  dns_tunneling:    {min_precision: null, min_recall: null}
+  dga:              {min_precision: null, min_recall: null}
+  lateral_movement: {min_precision: null, min_recall: null}
+
+scenarios:
+  benign_office:    {max_detections: 0}
+  fp_traps:         {max_detections: 0}
+  c2_beaconing:     {all_labels_matched: true, max_false_positives: 0}
+  beacon_jittered:  {all_labels_matched: true, max_false_positives: 0}
+  dns_tunneling:    {all_labels_matched: true, max_false_positives: 0}
+  dga:              {all_labels_matched: true, max_false_positives: 0}
+  lateral_movement: {all_labels_matched: true, max_false_positives: 0}

@@ -5,6 +5,7 @@ Resolution order for the base config file:
 1. an explicit path (``--config``);
 2. ``$ZDP_CONFIG``;
 3. ``config/default.yaml`` in a source checkout;
+4. the copy bundled into the wheel (``zdp/_bundled_config/default.yaml``).
 
 Relative paths inside a config file (allowlists, schedules) resolve against
 that file's directory. Overlays (e.g. a fixture's ``site.yaml``) are
@@ -30,7 +31,10 @@ from zdp.policy import BusinessHours, DomainPolicy, NetworkPolicy, PolicyError
 from zdp.state import AnalyzerState
 
 _PACKAGE_DIR = Path(__file__).resolve().parent
-_CANDIDATE_DEFAULTS = (_PACKAGE_DIR.parent / "config" / "default.yaml",)
+_CANDIDATE_DEFAULTS = (
+    _PACKAGE_DIR.parent / "config" / "default.yaml",
+    _PACKAGE_DIR / "_bundled_config" / "default.yaml",
+)
 
 
 class ConfigError(ValueError):

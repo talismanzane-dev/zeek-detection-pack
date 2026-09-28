@@ -64,6 +64,11 @@ path = "zdp/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["zdp"]
 
+# Ship the default configuration inside the wheel so `zdp` works when installed
+# outside a source checkout (e.g. the Docker image).
+[tool.hatch.build.targets.wheel.force-include]
+"config" = "zdp/_bundled_config"
+
 [dependency-groups]
 dev = [
     "mypy==2.4.0",
