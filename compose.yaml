@@ -1,0 +1,4 @@
+# Lets `docker compose up` work from the repository root.
+# The lab itself is defined in docker/docker-compose.yml.
+include:
+  - docker/docker-compose.yml

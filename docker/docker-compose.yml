@@ -1,0 +1,96 @@
+# zeek-detection-pack lab.
+#
+#   docker compose up                          # from the repository root (see ../compose.yaml)
+#   docker compose --profile viewer up         # also tail detections in a viewer
+#   ZEEK_INTERFACE=eth0 docker compose --profile live up zeek-live analyzer
+#
+# Flow: ./pcaps/*.pcap → zeek (JSON logs in ./lab/logs) → analyzer
+# (./lab/out/detections.jsonl). The harness service runs every detector
+# against the labeled fixtures baked into the image and writes metrics and
+# per-detector reports to ./lab/out. No privileged mode is needed for pcap
+# replay; only the optional live-capture profile adds NET_ADMIN/NET_RAW.
+
+name: zeek-detection-pack
+
+x-analyzer-image: &analyzer-image
+  image: zeek-detection-pack:local
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+  # Run as the host user so files written to ./lab/out are owned by you.
+  # `make lab` sets these; plain `docker compose up` defaults to 1000:1000.
+  user: "${ZDP_UID:-1000}:${ZDP_GID:-1000}"
+
+services:
+  zeek:
+    image: zeek/zeek:lts
+    volumes:
+      - ../pcaps:/pcaps:ro
+      - ../lab/logs:/logs
+      - ./zeek/local.zeek:/zeek/local.zeek:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        found=0
+        for pcap in /pcaps/*.pcap /pcaps/*.pcapng; do
+          [ -e "$$pcap" ] || continue
+          found=1
+          name=$$(basename "$$pcap")
+          out="/logs/$${name%.*}"
+          if [ -f "$$out/.done" ]; then echo "zeek: $$name already processed"; continue; fi
+          mkdir -p "$$out" && cd "$$out"
+          echo "zeek: processing $$name"
+          zeek -C -r "$$pcap" /zeek/local.zeek
+          touch .done
+        done
+        [ "$$found" = 1 ] || echo "zeek: no pcaps in ./pcaps — run 'make lab-demo' or add captures"
+
+  analyzer:
+    <<: *analyzer-image
+    depends_on:
+      zeek:
+        condition: service_completed_successfully
+    volumes:
+      - ../lab/logs:/lab/logs:ro
+      - ../lab/out:/lab/out
+    environment:
+      ZDP_INTERVAL: ${ZDP_INTERVAL:-60}
+      ZDP_ONCE: ${ZDP_ONCE:-0}
+    entrypoint: ["/bin/sh", "-c"]
+    # Re-runs whenever the logs change; set ZDP_ONCE=1 for a single pass.
+    command:
+      - |
+        if [ "$${ZDP_ONCE:-0}" = 1 ]; then
+          exec zdp run --logs /lab/logs --out /lab/out/detections.jsonl --summary /lab/out/run_summary.json
+        fi
+        exec zdp run --logs /lab/logs --out /lab/out/detections.jsonl --summary /lab/out/run_summary.json --watch --interval "$$ZDP_INTERVAL"
+
+  harness:
+    <<: *analyzer-image
+    volumes:
+      - ../lab/out:/lab/out
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        python -m zdp.harness --fixtures /app/fixtures --out /lab/out/metrics.json --reports /lab/out/reports \
+          && python /app/tools/check_gates.py /lab/out/metrics.json /app/quality_gates.yaml
+
+  viewer:
+    <<: *analyzer-image
+    profiles: ["viewer"]
+    depends_on: [analyzer]
+    volumes:
+      - ../lab/out:/lab/out:ro
+    command: ["view", "--follow", "/lab/out/detections.jsonl"]
+
+  zeek-live:
+    image: zeek/zeek:lts
+    profiles: ["live"]
+    network_mode: host
+    cap_add: [NET_ADMIN, NET_RAW]
+    volumes:
+      - ../lab/logs/live:/logs
+      - ./zeek/local.zeek:/zeek/local.zeek:ro
+    working_dir: /logs
+    command: ["zeek", "-i", "${ZEEK_INTERFACE:-eth0}", "/zeek/local.zeek"]
