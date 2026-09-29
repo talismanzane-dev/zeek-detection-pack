@@ -14,7 +14,7 @@ concurrency:
 
 env:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
-  ZEEK_IMAGE: zeek/zeek:latest
+  ZEEK_IMAGE: zeek/zeek:lts
 
 jobs:
   lint:
