@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  ZEEK_IMAGE: zeek/zeek:latest
+
+jobs:
+  lint:
+    name: lint (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy --strict zdp/
+
+  test:
+    name: test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: pip install -e ".[dev]"
+      - name: Unit and system tests
+        run: pytest tests/unit tests/system tests/test_detectors.py tests/test_harness.py --cov=zdp --cov-report=xml --cov-report=term
+      - name: Run each detector against its fixture
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          for d in c2_beaconing dns_tunneling dga lateral_movement; do
+            args=(--logs "fixtures/$d" --detectors "$d" --out "out/$d.jsonl")
+            [ -f "fixtures/$d/site.yaml" ] && args+=(--overlay "fixtures/$d/site.yaml")
+            [ -f "fixtures/$d/state_seed.json" ] && args+=(--state-seed "fixtures/$d/state_seed.json")
+            zdp run "${args[@]}"
+            if [ ! -s "out/$d.jsonl" ]; then
+              echo "::error::$d produced no detections on fixtures/$d"
+              exit 1
+            fi
+            echo "$d: $(wc -l < "out/$d.jsonl") detection(s)"
+          done
+      - name: Harness over all fixtures (runtime metrics)
+        run: python -m zdp.harness --fixtures fixtures --out metrics.json --reports reports --detections-dir out/detections
+      - name: Fixtures are reproducible from the seeded generator
+        run: python tools/gen_fixtures.py --check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: harness-py${{ matrix.python-version }}
+          path: |
+            metrics.json
+            reports/*.md
+            out/
+            coverage.xml
+          if-no-files-found: warn
+
+  gates:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: pip install -e .
+      - name: Quality gates (quality_gates.yaml)
+        run: |
+          python -m zdp.harness --fixtures fixtures --out metrics.json --no-reports --quiet
+          python tools/check_gates.py metrics.json quality_gates.yaml
+
+  lab-smoke:
+    name: lab smoke (zeek → zdp, docker image)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: pip install -e .
+      - name: Zeek processes the synthetic demo pcap
+        run: |
+          python tools/gen_demo_pcap.py --out pcaps/zdp-demo.pcap
+          mkdir -p lab/logs
+          docker run --rm -v "$PWD/pcaps:/pcaps:ro" -v "$PWD/lab/logs:/logs" \
+            -v "$PWD/docker/zeek/local.zeek:/zeek/local.zeek:ro" -w /logs "$ZEEK_IMAGE" \
+            zeek -C -r /pcaps/zdp-demo.pcap /zeek/local.zeek
+      - name: Every detector fires on real Zeek output
+        run: |
+          zdp run --logs lab/logs --out lab/detections.jsonl
+          zdp view lab/detections.jsonl
+          for d in c2_beaconing dns_tunneling dga lateral_movement; do
+            grep -q "\"detector\":\"$d\"" lab/detections.jsonl || { echo "::error::$d did not fire"; exit 1; }
+          done
+      - name: Build the analyzer image and run its self-test
+        run: |
+          docker build -f docker/Dockerfile -t zeek-detection-pack:ci .
+          docker run --rm zeek-detection-pack:ci selftest
+
