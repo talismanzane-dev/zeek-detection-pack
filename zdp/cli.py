@@ -1,4 +1,4 @@
-"""Command-line entry point: ``zdp run | harness | list | view | selftest``."""
+"""Command-line entry point: ``zdp run | export | harness | list | view | selftest``."""
 
 from __future__ import annotations
 
@@ -108,6 +108,24 @@ def cmd_run(args: argparse.Namespace) -> int:
             persistent.close()
 
 
+def cmd_export(args: argparse.Namespace) -> int:
+    from zdp.exporters import export_rules
+
+    config = Config.load(args.config, args.overlay)
+    formats = [args.format]
+    manifest = export_rules(config, formats, args.out, detectors=_detector_list(args.detectors))
+    for skip in manifest["skipped"]:
+        LOG.warning(
+            "not exported to %s: %s/%s — %s",
+            skip["format"],
+            skip["detector"],
+            skip["signal"],
+            skip["reason"],
+        )
+    LOG.info("wrote %d rule files under %s", len(manifest["files"]), args.out)
+    return 0
+
+
 def cmd_harness(args: argparse.Namespace) -> int:
     from zdp.harness.runner import main as harness_main
 
@@ -200,6 +218,13 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--interval", type=float, default=60.0, help="watch poll interval (s)")
     _add_config_args(run)
     run.set_defaults(func=cmd_run)
+
+    export = sub.add_parser("export", help="export Sigma rules from live config")
+    export.add_argument("--format", choices=["sigma"], default="sigma")
+    export.add_argument("--out", type=Path, default=Path("rules"))
+    export.add_argument("--detectors", help="comma-separated subset of detectors")
+    _add_config_args(export)
+    export.set_defaults(func=cmd_export)
 
     harness = sub.add_parser(
         "harness", help="run the labeled-fixture harness (see: zdp harness --help)", add_help=False

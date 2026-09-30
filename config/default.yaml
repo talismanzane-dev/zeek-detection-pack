@@ -127,3 +127,6 @@ detectors:
       scan_fraction: 0.8
     correlation_seconds: 600
     merge_secondary_weight: 0.5
+
+export:
+  author: zeek-detection-pack (generated)
