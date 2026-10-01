@@ -82,6 +82,7 @@ def export_rules(
         "framework_version": __version__,
         "config_hash": config.config_hash(),
         "files": [],
+        "rules": [],
         "skipped": [],
     }
     skips: list[ExportSkip] = [s for a in analyzers for s in a.export_skips()]
@@ -104,21 +105,53 @@ def export_rules(
                     render_sigma_file(rule, analyzer.config.config_hash), encoding="utf-8"
                 )
                 manifest["files"].append(str(path.relative_to(out_dir)))
+                for doc in (*rule.companions, rule.document):
+                    manifest["rules"].append(
+                        {
+                            "format": "sigma",
+                            "detector": rule.detector,
+                            "signal": rule.signal,
+                            "tier": rule.tier,
+                            "id": doc["id"],
+                            "title": doc["title"],
+                            "kind": "correlation" if "correlation" in doc else "detection",
+                            "file": str(path.relative_to(out_dir)),
+                        }
+                    )
 
     if "suricata" in formats:
         target = out_dir / "suricata"
         target.mkdir(parents=True, exist_ok=True)
         _clean(target, ".rules")
+        seen_sids: dict[int, str] = {}
         for analyzer in analyzers:
             suricata_rules = analyzer.to_suricata()
             if not suricata_rules:
                 continue
+            for srule in suricata_rules:
+                owner = f"{srule.detector}/{srule.signal}"
+                if srule.sid in seen_sids:
+                    raise RuntimeError(
+                        f"SID collision {srule.sid}: {seen_sids[srule.sid]} vs {owner}"
+                    )
+                seen_sids[srule.sid] = owner
             path = target / f"{GENERATED_PREFIX}{analyzer.name}.rules"
             path.write_text(
                 render_suricata_file(analyzer.name, suricata_rules, analyzer.config.config_hash),
                 encoding="utf-8",
             )
             manifest["files"].append(str(path.relative_to(out_dir)))
+            manifest["rules"] += [
+                {
+                    "format": "suricata",
+                    "detector": r.detector,
+                    "signal": r.signal,
+                    "tier": r.tier,
+                    "sid": r.sid,
+                    "file": str(path.relative_to(out_dir)),
+                }
+                for r in suricata_rules
+            ]
 
     manifest["skipped"] = [
         {"detector": s.detector, "signal": s.signal, "format": s.fmt, "reason": s.reason}
