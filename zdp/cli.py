@@ -112,7 +112,7 @@ def cmd_export(args: argparse.Namespace) -> int:
     from zdp.exporters import export_rules
 
     config = Config.load(args.config, args.overlay)
-    formats = [args.format]
+    formats = ["sigma", "suricata"] if args.format == "all" else [args.format]
     manifest = export_rules(config, formats, args.out, detectors=_detector_list(args.detectors))
     for skip in manifest["skipped"]:
         LOG.warning(
@@ -219,8 +219,8 @@ def build_parser() -> argparse.ArgumentParser:
     _add_config_args(run)
     run.set_defaults(func=cmd_run)
 
-    export = sub.add_parser("export", help="export Sigma rules from live config")
-    export.add_argument("--format", choices=["sigma"], default="sigma")
+    export = sub.add_parser("export", help="export Sigma / Suricata rules from live config")
+    export.add_argument("--format", choices=["sigma", "suricata", "all"], default="all")
     export.add_argument("--out", type=Path, default=Path("rules"))
     export.add_argument("--detectors", help="comma-separated subset of detectors")
     _add_config_args(export)

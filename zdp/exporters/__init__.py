@@ -1,4 +1,4 @@
-"""Sigma exporter (spec §5.3).
+"""Sigma and Suricata exporters (spec §5.3).
 
 Exporters are code, not static files: each analyzer builds its rules from the
 live configuration via ``to_sigma()`` / ``to_suricata()``, and the functions
@@ -20,10 +20,11 @@ from zdp import __version__
 from zdp.analyzers.base import BaseAnalyzer
 from zdp.config import Config
 from zdp.exporters.sigma import render_sigma_file
+from zdp.exporters.suricata import render_suricata_file
 from zdp.registry import available_analyzers, create_analyzers
 from zdp.rules import ExportSkip, SigmaRule
 
-FORMATS = ("sigma",)
+FORMATS = ("sigma", "suricata")
 GENERATED_PREFIX = "zdp_"
 
 
@@ -103,6 +104,21 @@ def export_rules(
                     render_sigma_file(rule, analyzer.config.config_hash), encoding="utf-8"
                 )
                 manifest["files"].append(str(path.relative_to(out_dir)))
+
+    if "suricata" in formats:
+        target = out_dir / "suricata"
+        target.mkdir(parents=True, exist_ok=True)
+        _clean(target, ".rules")
+        for analyzer in analyzers:
+            suricata_rules = analyzer.to_suricata()
+            if not suricata_rules:
+                continue
+            path = target / f"{GENERATED_PREFIX}{analyzer.name}.rules"
+            path.write_text(
+                render_suricata_file(analyzer.name, suricata_rules, analyzer.config.config_hash),
+                encoding="utf-8",
+            )
+            manifest["files"].append(str(path.relative_to(out_dir)))
 
     manifest["skipped"] = [
         {"detector": s.detector, "signal": s.signal, "format": s.fmt, "reason": s.reason}
