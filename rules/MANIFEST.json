@@ -1,0 +1,195 @@
+{
+  "generated_by": "zdp export",
+  "framework_version": "0.1.0",
+  "config_hash": "8e06dc3ef5f6",
+  "files": [
+    "sigma/zdp_dga_nxdomain_burst.yml",
+    "sigma/zdp_dns_tunneling_query_volume.yml",
+    "sigma/zdp_lateral_movement_admin_share_write.yml",
+    "sigma/zdp_lateral_movement_fanout.yml",
+    "suricata/zdp_c2_beaconing.rules",
+    "suricata/zdp_dga.rules",
+    "suricata/zdp_dns_tunneling.rules",
+    "suricata/zdp_lateral_movement.rules"
+  ],
+  "rules": [
+    {
+      "format": "sigma",
+      "detector": "dga",
+      "signal": "nxdomain_burst",
+      "tier": "approx",
+      "id": "41294e2f-58b6-596c-ab09-f6d5e27fa83c",
+      "title": "ZDP DGA - NXDOMAIN response (base event) [approx]",
+      "kind": "detection",
+      "file": "sigma/zdp_dga_nxdomain_burst.yml"
+    },
+    {
+      "format": "sigma",
+      "detector": "dga",
+      "signal": "nxdomain_burst",
+      "tier": "approx",
+      "id": "d15d42c1-65e8-52c6-aa91-1ca5da81452c",
+      "title": "ZDP DGA - NXDOMAIN burst of distinct names from one host [approx]",
+      "kind": "correlation",
+      "file": "sigma/zdp_dga_nxdomain_burst.yml"
+    },
+    {
+      "format": "sigma",
+      "detector": "dns_tunneling",
+      "signal": "query_volume",
+      "tier": "approx",
+      "id": "01f0fba0-0fc5-5f57-a9ab-2435a15db103",
+      "title": "ZDP DNS tunneling - long or TXT/NULL query (base event) [approx]",
+      "kind": "detection",
+      "file": "sigma/zdp_dns_tunneling_query_volume.yml"
+    },
+    {
+      "format": "sigma",
+      "detector": "dns_tunneling",
+      "signal": "query_volume",
+      "tier": "approx",
+      "id": "97382618-6812-5638-b377-c749c6ec05be",
+      "title": "ZDP DNS tunneling - sustained long/TXT query volume from one host [approx]",
+      "kind": "correlation",
+      "file": "sigma/zdp_dns_tunneling_query_volume.yml"
+    },
+    {
+      "format": "sigma",
+      "detector": "lateral_movement",
+      "signal": "admin_share_write",
+      "tier": "full",
+      "id": "a717ddbe-4711-51a2-8997-8bb2ea41d268",
+      "title": "ZDP lateral movement - write or executable on Windows admin share [full]",
+      "kind": "detection",
+      "file": "sigma/zdp_lateral_movement_admin_share_write.yml"
+    },
+    {
+      "format": "sigma",
+      "detector": "lateral_movement",
+      "signal": "fanout",
+      "tier": "approx",
+      "id": "3725be46-459b-55c8-b68c-dec075812616",
+      "title": "ZDP lateral movement - internal admin-port connection (base event) [approx]",
+      "kind": "detection",
+      "file": "sigma/zdp_lateral_movement_fanout.yml"
+    },
+    {
+      "format": "sigma",
+      "detector": "lateral_movement",
+      "signal": "fanout",
+      "tier": "approx",
+      "id": "04a1010b-b74d-5ac1-a2e5-76575f1ef8f6",
+      "title": "ZDP lateral movement - admin-port fan-out from one host [approx]",
+      "kind": "correlation",
+      "file": "sigma/zdp_lateral_movement_fanout.yml"
+    },
+    {
+      "format": "suricata",
+      "detector": "c2_beaconing",
+      "signal": "session_count_tcp_80",
+      "tier": "approx",
+      "sid": 1605228,
+      "file": "suricata/zdp_c2_beaconing.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "c2_beaconing",
+      "signal": "session_count_tcp_443",
+      "tier": "approx",
+      "sid": 1158377,
+      "file": "suricata/zdp_c2_beaconing.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "c2_beaconing",
+      "signal": "session_count_tcp_8080",
+      "tier": "approx",
+      "sid": 1108693,
+      "file": "suricata/zdp_c2_beaconing.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "c2_beaconing",
+      "signal": "session_count_tcp_8443",
+      "tier": "approx",
+      "sid": 1972964,
+      "file": "suricata/zdp_c2_beaconing.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "dga",
+      "signal": "nxdomain_rate",
+      "tier": "companion",
+      "sid": 1190372,
+      "file": "suricata/zdp_dga.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "dns_tunneling",
+      "signal": "long_query",
+      "tier": "approx",
+      "sid": 1581590,
+      "file": "suricata/zdp_dns_tunneling.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "dns_tunneling",
+      "signal": "txt_rate",
+      "tier": "approx",
+      "sid": 1444397,
+      "file": "suricata/zdp_dns_tunneling.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "dns_tunneling",
+      "signal": "null_rate",
+      "tier": "approx",
+      "sid": 1235320,
+      "file": "suricata/zdp_dns_tunneling.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "lateral_movement",
+      "signal": "admin_share_connect",
+      "tier": "approx",
+      "sid": 1326656,
+      "file": "suricata/zdp_lateral_movement.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "lateral_movement",
+      "signal": "admin_share_exec_transfer",
+      "tier": "approx",
+      "sid": 1198667,
+      "file": "suricata/zdp_lateral_movement.rules"
+    },
+    {
+      "format": "suricata",
+      "detector": "lateral_movement",
+      "signal": "fanout",
+      "tier": "approx",
+      "sid": 1720310,
+      "file": "suricata/zdp_lateral_movement.rules"
+    }
+  ],
+  "skipped": [
+    {
+      "detector": "c2_beaconing",
+      "signal": "beaconing",
+      "format": "sigma",
+      "reason": "Sigma has no log model for per-flow inter-arrival statistics; interval regularity and size dispersion cannot be expressed. Use the Python analyzer or the approximate Suricata rules."
+    },
+    {
+      "detector": "lateral_movement",
+      "signal": "new_admin_pair",
+      "format": "sigma",
+      "reason": "Requires a persistent first-seen baseline of (orig, resp, port) tuples with a 7-day warm-up; neither Sigma nor Suricata can express stateful baselines."
+    },
+    {
+      "detector": "lateral_movement",
+      "signal": "new_admin_pair",
+      "format": "suricata",
+      "reason": "Requires a persistent first-seen baseline of (orig, resp, port) tuples with a 7-day warm-up; neither Sigma nor Suricata can express stateful baselines."
+    }
+  ]
+}

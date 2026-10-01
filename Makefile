@@ -7,7 +7,7 @@ export ZDP_UID ?= $(shell id -u)
 export ZDP_GID ?= $(shell id -g)
 
 .DEFAULT_GOAL := help
-.PHONY: help install lint typecheck test metrics gates fixtures \
+.PHONY: help install lint typecheck test metrics gates export export-check fixtures \
         fixtures-check check image lab lab-demo lab-down clean
 
 help: ## Show this help
@@ -32,13 +32,19 @@ metrics: ## Run the harness over the fixtures → metrics.json + reports/
 gates: metrics ## Check metrics.json against quality_gates.yaml
 	$(PYTHON) tools/check_gates.py metrics.json quality_gates.yaml
 
+export: ## Export Sigma + Suricata rules from the live config into rules/
+	$(PYTHON) -m zdp export --format all --out rules
+
+export-check: export ## Fail if committed rules differ from a fresh export
+	git diff --exit-code -- rules/
+
 fixtures: ## Regenerate the deterministic fixtures
 	$(PYTHON) tools/gen_fixtures.py
 
 fixtures-check: ## Fail if committed fixtures differ from the generator output
 	$(PYTHON) tools/gen_fixtures.py --check
 
-check: lint typecheck test gates fixtures-check ## Everything CI runs (except containers)
+check: lint typecheck test gates export-check fixtures-check ## Everything CI runs (except containers)
 
 image: ## Build the analyzer image
 	docker build -f docker/Dockerfile -t $(IMAGE) .

@@ -27,8 +27,8 @@ SURICATA_SID_SPAN = 1_000_000
 
 
 def rule_uuid(detector: str, signal: str, config_hash: str) -> str:
-    """UUIDv5 from detector slug + config hash (spec §5.3)."""
-    return str(uuid.uuid5(RULE_NAMESPACE, f"{detector}/{config_hash}"))
+    """UUIDv5 from detector slug + signal + config hash (spec §5.3)."""
+    return str(uuid.uuid5(RULE_NAMESPACE, f"{detector}/{signal}/{config_hash}"))
 
 
 def suricata_sid(detector: str, signal: str, config_hash: str) -> int:
