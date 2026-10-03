@@ -3,7 +3,7 @@
 Known false-positive conditions per detector, the mitigation built into the
 framework, and the fixture that regression-tests it. **Measured FP rates are
 placeholders**: they will be filled only from a harness run over a real
-dataset (CTU-13 first).
+dataset (CTU-13 first; see [docs/evaluation.md](../docs/evaluation.md)).
 Synthetic fixtures prove that a mitigation works, not how often a condition
 occurs in your network.
 

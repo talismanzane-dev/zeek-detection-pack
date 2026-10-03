@@ -8,7 +8,7 @@ export ZDP_GID ?= $(shell id -g)
 
 .DEFAULT_GOAL := help
 .PHONY: help install lint typecheck test metrics gates export export-check fixtures \
-        fixtures-check check image lab lab-demo lab-down clean
+        fixtures-check docs docs-check check image lab lab-demo lab-down clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
@@ -44,7 +44,14 @@ fixtures: ## Regenerate the deterministic fixtures
 fixtures-check: ## Fail if committed fixtures differ from the generator output
 	$(PYTHON) tools/gen_fixtures.py --check
 
-check: lint typecheck test gates export-check fixtures-check ## Everything CI runs (except containers)
+docs: ## Re-render the README metrics block (placeholders until a benchmark exists)
+	$(PYTHON) tools/render_metrics.py
+
+docs-check: ## README metrics block is current and docs contain no metric literals
+	$(PYTHON) tools/render_metrics.py --check
+	$(PYTHON) tools/check_no_hardcoded_metrics.py
+
+check: lint typecheck test gates export-check fixtures-check docs-check ## Everything CI runs (except containers)
 
 image: ## Build the analyzer image
 	docker build -f docker/Dockerfile -t $(IMAGE) .

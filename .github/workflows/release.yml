@@ -77,7 +77,8 @@ jobs:
 
             Attached `metrics.json` is the harness output for the bundled **synthetic fixture
             suite** — a logic regression check, not a performance benchmark. Benchmark results
-            (e.g. CTU-13) are published only from a harness run on that dataset.
+            (e.g. CTU-13) are published only from a harness run on that dataset; see
+            docs/evaluation.md.
           files: |
             dist/metrics.json
             dist/zdp-rules-${{ github.ref_name }}.tar.gz

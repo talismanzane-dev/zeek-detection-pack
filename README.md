@@ -9,6 +9,13 @@ A detection-engineering framework for SOC teams: batch analytics over
 **DGA domains** and **lateral movement**, map every finding to MITRE ATT&CK,
 prove their logic against labelled fixtures in a test harness, and export
 Sigma and Suricata rules generated from the same live configuration.
+
+> **Evaluation status.** No benchmark has been run yet. Precision, recall and
+> false-positive figures are **placeholders** until the detectors are run
+> against the real CTU-13 dataset ([procedure](docs/evaluation.md)). Nothing in
+> this repository is a measured performance claim; see
+> [Metrics](#metrics-placeholders-pending-a-ctu-13-run).
+
 ## Detectors
 
 | Detector | Zeek logs | What it scores | ATT&CK | Export |
@@ -183,6 +190,29 @@ rules: [`rules/`](rules) · rationale: [docs/export_fidelity.md](docs/export_fid
    then `make export`.
 8. Document it in `docs/detectors.md`, `mappings/attack.md` and
    `reports/false_positives.md`.
+
+## Metrics (placeholders pending a CTU-13 run)
+
+This block is written only by `tools/render_metrics.py` from a benchmark
+`metrics.json`; CI fails if it is edited by hand or goes stale, and
+`tools/check_no_hardcoded_metrics.py` rejects metric values anywhere else in
+the docs. Results on the synthetic `fixtures` suite are logic tests and are
+never rendered here.
+
+<!-- BEGIN GENERATED METRICS (tools/render_metrics.py; do not edit by hand) -->
+> **No benchmark has been run yet — every value below is a placeholder.**
+> No benchmark metrics file found at `benchmark.json`.
+> Procedure: [docs/evaluation.md](docs/evaluation.md). Do not replace these cells by
+> hand; run the harness on the dataset and re-render this block with
+> `tools/render_metrics.py`.
+
+| Detector | Dataset | Precision | Recall | F1 | False positives |
+|---|---|---|---|---|---|
+| `c2_beaconing` | CTU-13 | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run |
+| `dns_tunneling` | CTU-13 | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run |
+| `dga` | CTU-13 | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run |
+| `lateral_movement` | CTU-13 | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run | PLACEHOLDER: compute from CTU-13 run |
+<!-- END GENERATED METRICS -->
 
 ## Repository layout
 
