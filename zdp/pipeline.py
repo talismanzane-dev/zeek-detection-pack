@@ -31,7 +31,6 @@ from zdp.state import StateStore
 
 LOG = logging.getLogger(__name__)
 
-# TODO: process large inputs in time-bounded chunks instead of one full read.
 #: Default size above which inputs are processed in chunks (bytes on disk).
 DEFAULT_CHUNK_THRESHOLD = 512 * 1024 * 1024
 DEFAULT_CHUNK_SECONDS = 86_400

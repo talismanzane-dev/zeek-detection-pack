@@ -38,7 +38,6 @@ from zdp.state import StateStore
 
 LOG = logging.getLogger(__name__)
 METRICS_SCHEMA_VERSION = 1
-# TODO: per-detector markdown reports (see report.py).
 
 
 @dataclass
