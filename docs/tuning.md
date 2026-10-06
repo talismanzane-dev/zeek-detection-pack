@@ -1,4 +1,4 @@
-# Tuning and calibraton
+# Tuning and calibration
 
 The default thresholds are design starting points from the specification.
 They have **not** been calibrated on production traffic, and no claim about
